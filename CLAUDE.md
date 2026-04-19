@@ -129,3 +129,12 @@ Before marking a task complete, verify:
 8. **Sync** — Does every widget showing shared couple state subscribe to a `StreamProvider` / Supabase Realtime channel?
 
 **Definition of Done:** all 8 checks pass before moving to the next task.
+
+---
+
+## Git Workflow
+
+- Work on `main` branch during MVP — no feature branches needed for solo development
+- After every successful feature or major fix, perform a `git commit` with a descriptive message
+- Run `flutter analyze` before every commit — zero warnings policy
+- Use branches only when: experimenting with a risky change, or once the app is live in the store
