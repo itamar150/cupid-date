@@ -1,5 +1,6 @@
 # Security — never commit these
 google-services.json
+lib/firebase_options.dart
 .env
 .env.*
 
