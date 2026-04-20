@@ -4,6 +4,12 @@
 At the beginning of every session, read:
 1. `docs/spec.md` — full product specification
 2. `docs/instructions.md` — product compass and core logic
+3. `docs/progress.md` — current progress and next steps
+
+## Progress Tracking
+After completing every task or phase, update `docs/progress.md`:
+- Mark completed items with `[x]`
+- Add any new tasks discovered during implementation
 
 ---
 

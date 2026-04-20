@@ -1,3 +1,4 @@
+import 'package:cupid_date/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,12 +11,12 @@ class CupidDateApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Cupid Date',
-      home: Scaffold(
-        body: Center(
-          child: Text('Cupid Date'),
-        ),
+      theme: buildAppTheme(),
+      debugShowCheckedModeBanner: false,
+      home: const Scaffold(
+        body: Center(child: Text('Cupid Date')),
       ),
     );
   }
