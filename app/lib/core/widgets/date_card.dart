@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cupid_date/core/theme/app_colors.dart';
 import 'package:cupid_date/core/theme/app_radius.dart';
 import 'package:cupid_date/core/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
@@ -40,14 +41,14 @@ class DateCard extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               _buildImage(imageUrl, isSurprise),
-              Container(
+              const DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withValues(alpha: 0.6),
+                      AppColors.imageOverlay,
                     ],
                   ),
                 ),
@@ -122,13 +123,13 @@ class DateCard extends StatelessWidget {
 
   Widget _buildImage(String? url, bool surprise) {
     if (surprise || url == null) {
-      return Container(color: Colors.grey.shade300);
+      return Container(color: AppColors.shimmer);
     }
     return CachedNetworkImage(
       imageUrl: url,
       fit: BoxFit.cover,
-      placeholder: (_, __) => Container(color: Colors.grey.shade300),
-      errorWidget: (_, __, ___) => Container(color: Colors.grey.shade300),
+      placeholder: (_, __) => Container(color: AppColors.shimmer),
+      errorWidget: (_, __, ___) => Container(color: AppColors.shimmer),
     );
   }
 }
