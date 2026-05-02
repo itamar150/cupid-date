@@ -26,6 +26,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     required int maxRadius,
     required List<String> foodPreferences,
     required bool surpriseOptIn,
+    required int gender,
   }) async {
     await _supabase.from('profiles').upsert({
       'id': userId,
@@ -34,6 +35,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       'email': email,
       'area': area,
       'surprise_opt_in': surpriseOptIn,
+      'gender': gender,
     });
 
     await _supabase.from('preferences').upsert({

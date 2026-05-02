@@ -19,18 +19,35 @@ abstract final class AppColors {
   static const Color imageOverlay = Color(0x99000000);
   static const Color onDark = Color(0xFFFFFFFF);
 
+  static const  Color calmCard = Color(0xFFEDE5EC);
+  static const Color foodCard = Color(0xFFF5E6D3);
+  static const Color natureCard = Color(0xFFD9EDD9);
+  static const Color adventureCard = Color(0xFFD3DCF0);
+  static const Color funnyCard = Color(0xFFF5F0D0);
+  static const Color loudCard = Color.fromARGB(255, 207, 191, 226);
+  
+
   // Gradients
   static const LinearGradient heroGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF162040), Color(0xFF28425A), Color(0xFFC38EB4)],
-    stops: [0, 0.65, 1],
+    colors: [
+      Color(0xFF162040),
+      Color.fromARGB(255, 55, 89, 121),
+      Color(0xFFC38EB4),
+    ],
+    stops: [0, 0.35, 1],
   );
 
-    static const LinearGradient heroGradient1 = LinearGradient(
+  static const LinearGradient heroGradient1 = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [ Color.fromARGB(255, 240, 236, 236), Color.fromARGB(255, 185, 171, 184), Color.fromARGB(255, 191, 168, 180),Color.fromARGB(255, 126, 131, 151)],
+    colors: [
+      Color.fromARGB(255, 240, 236, 236),
+      Color.fromARGB(255, 185, 171, 184),
+      Color.fromARGB(255, 191, 168, 180),
+      Color.fromARGB(255, 126, 131, 151),
+    ],
     stops: [0, 0.35, 0.65, 1],
   );
 

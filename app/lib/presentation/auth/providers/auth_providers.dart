@@ -54,10 +54,11 @@ final isAuthenticatedProvider = StreamProvider<bool>(
 );
 
 final currentUserNameProvider = FutureProvider<String>((ref) async {
-  final userId = ref.watch(authRepositoryProvider).currentUserId;
+  ref.watch(isAuthenticatedProvider);
+  final userId = ref.read(authRepositoryProvider).currentUserId;
   if (userId == null) return '';
   final result = await ref
-      .watch(_supabaseClientProvider)
+      .read(_supabaseClientProvider)
       .from('profiles')
       .select('name')
       .eq('id', userId)
@@ -65,11 +66,24 @@ final currentUserNameProvider = FutureProvider<String>((ref) async {
   return (result?['name'] as String?) ?? '';
 });
 
+final currentUserGenderProvider = FutureProvider<int>((ref) async {
+  ref.watch(isAuthenticatedProvider);
+  final userId = ref.read(authRepositoryProvider).currentUserId;
+  if (userId == null) return 1;
+  final result = await ref
+      .read(_supabaseClientProvider)
+      .from('profiles')
+      .select('gender')
+      .eq('id', userId)
+      .maybeSingle();
+  return (result?['gender'] as int?) ?? 1;
+});
+
 final profileExistsProvider = FutureProvider<bool>((ref) async {
-  final authRepo = ref.watch(authRepositoryProvider);
-  final userId = authRepo.currentUserId;
+  ref.watch(isAuthenticatedProvider);
+  final userId = ref.read(authRepositoryProvider).currentUserId;
   if (userId == null) return false;
-  return ref.watch(profileRepositoryProvider).profileExists(userId);
+  return ref.read(profileRepositoryProvider).profileExists(userId);
 });
 
 final coupleRepositoryProvider = Provider<CoupleRepository>(
@@ -85,10 +99,11 @@ final joinCoupleProvider = Provider<JoinCoupleUseCase>(
 );
 
 final vibeProfileCompleteProvider = FutureProvider<bool>((ref) async {
-  final userId = ref.watch(authRepositoryProvider).currentUserId;
+  ref.watch(isAuthenticatedProvider);
+  final userId = ref.read(authRepositoryProvider).currentUserId;
   if (userId == null) return false;
   final result = await ref
-      .watch(_supabaseClientProvider)
+      .read(_supabaseClientProvider)
       .from('preferences')
       .select('vibe_profile')
       .eq('user_id', userId)

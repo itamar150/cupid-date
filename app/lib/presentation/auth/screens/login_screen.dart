@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:cupid_date/core/theme/app_colors.dart';
 import 'package:cupid_date/core/theme/app_spacing.dart';
 import 'package:cupid_date/presentation/auth/providers/auth_providers.dart';
 import 'package:cupid_date/presentation/auth/screens/otp_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -145,40 +148,72 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        spacing.xxl,
-        MediaQuery.of(context).padding.top + spacing.xxxl,
-        spacing.xxl,
-        spacing.xxxl,
-      ),
-      decoration: const BoxDecoration(
-        gradient: AppColors.heroGradient,
-      ),
-      child: Column(
-        children: [
-          Image.asset(
-            'assets/icon/app_icon.png',
-            width: 80,
-            height: 80,
-          ),
-          SizedBox(height: spacing.md),
-          Text(
-            'Hangly',
-            style: text.displayLarge?.copyWith(
-              color: AppColors.onDark,
-              fontWeight: FontWeight.w800,
+    return ClipPath(
+      clipper: const _LoginHeaderClipper(),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(
+          spacing.xxl,
+          MediaQuery.of(context).padding.top + spacing.xxxl,
+          spacing.xxl,
+          spacing.xxxl,
+        ),
+        decoration: const BoxDecoration(gradient: AppColors.heroGradient),
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            const Positioned(
+              top: 20,
+              left: 80,
+              child: _Sparkle(size: 8, opacity: 0.68),
             ),
-          ),
-          SizedBox(height: spacing.xs),
-          Text(
-            'בחרו יחד, בלי לריב',
-            style: text.bodyLarge?.copyWith(
-              color: AppColors.onDark.withValues(alpha: 0.85),
+            const Positioned(
+              top: 55,
+              left: 140,
+              child: _Sparkle(size: 5, opacity: 0.5),
             ),
-          ),
-        ],
+            const Positioned(
+              top: 18,
+              right: 100,
+              child: _Sparkle(size: 10, opacity: 0.74),
+            ),
+            const Positioned(
+              top: 60,
+              right: 130,
+              child: _Sparkle(size: 6, opacity: 0.54),
+            ),
+            const Positioned(
+              top: 90,
+              left: 36,
+              child: _Sparkle(size: 7, opacity: 0.42),
+            ),
+            const Positioned(
+              top: 88,
+              right: 44,
+              child: _Sparkle(size: 9, opacity: 0.48),
+            ),
+            Column(
+              children: [
+                const _AnimatedLogo(size: 180),
+                Text(
+                  'Hangly',
+                  style: GoogleFonts.heebo(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.onDark,
+                  ),
+                ),
+                SizedBox(height: spacing.xs),
+                Text(
+                  'בחרו יחד, בלי לריב',
+                  style: text.bodyLarge?.copyWith(
+                    color: AppColors.onDark.withValues(alpha: 0.85),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -371,6 +406,99 @@ class _SendButton extends StatelessWidget {
                   ),
                 ),
         ),
+      ),
+    );
+  }
+}
+
+class _LoginHeaderClipper extends CustomClipper<Path> {
+  const _LoginHeaderClipper();
+
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..lineTo(0, size.height - 16)
+      ..quadraticBezierTo(
+        size.width * 0.5,
+        size.height + 12,
+        size.width,
+        size.height - 16,
+      )
+      ..lineTo(size.width, 0)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+class _Sparkle extends StatelessWidget {
+  const _Sparkle({required this.size, required this.opacity});
+
+  final double size;
+  final double opacity;
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.auto_awesome,
+      size: size,
+      color: AppColors.onDark.withValues(alpha: opacity),
+    );
+  }
+}
+
+class _AnimatedLogo extends StatefulWidget {
+  const _AnimatedLogo({required this.size});
+
+  final double size;
+
+  @override
+  State<_AnimatedLogo> createState() => _AnimatedLogoState();
+}
+
+class _AnimatedLogoState extends State<_AnimatedLogo>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3200),
+    )..repeat();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _ctrl.repeat();
+    } else {
+      _ctrl.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, child) {
+        final scale = 1.0 + 0.03 * math.sin(2 * math.pi * _ctrl.value);
+        return Transform.scale(scale: scale, child: child);
+      },
+      child: Image.asset(
+        'assets/icon/hangly_logo_splash.png',
+        width: widget.size,
+        height: widget.size,
       ),
     );
   }

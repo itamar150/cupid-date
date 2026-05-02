@@ -2,6 +2,7 @@ import 'package:cupid_date/core/data/israeli_cities.dart';
 import 'package:cupid_date/core/theme/app_colors.dart';
 import 'package:cupid_date/core/theme/app_spacing.dart';
 import 'package:cupid_date/core/widgets/onboarding_header.dart';
+import 'package:cupid_date/domain/entities/gender.dart';
 import 'package:cupid_date/presentation/auth/providers/auth_providers.dart';
 import 'package:cupid_date/presentation/onboarding/screens/hang_profile_screen.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +20,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   String? _selectedArea;
+  Gender? _selectedGender;
   double _radius = 10;
   final Set<String> _foodPreferences = {};
-  bool _surpriseOptIn = false;
   bool _isLoading = false;
 
 
@@ -29,7 +30,9 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     'כשר',
     'טבעוני',
     'ללא גלוטן',
-    'הכל בסדר',
+    'בשרי',
+    'חלבי',
+    'הכל הולך! ',
   ];
 
   @override
@@ -50,7 +53,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   bool get _isValid =>
       _firstNameController.text.trim().isNotEmpty &&
       _lastNameController.text.trim().isNotEmpty &&
-      _selectedArea != null;
+      _selectedArea != null &&
+      _selectedGender != null;
 
   Future<void> _submit() async {
     if (!_isValid) return;
@@ -64,7 +68,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
             area: _selectedArea!,
             maxRadius: _radius.round(),
             foodPreferences: _foodPreferences.toList(),
-            surpriseOptIn: _surpriseOptIn,
+            surpriseOptIn: false,
+            gender: _selectedGender!.value,
           );
       if (mounted) {
         await Navigator.of(context).push(
@@ -135,13 +140,13 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                     spacing: spacing,
                   ),
                   SizedBox(height: spacing.lg),
+                  _buildGenderPicker(text, spacing),
+                  SizedBox(height: spacing.xl),
                   _buildAreaDropdown(text, spacing),
                   SizedBox(height: spacing.xl),
                   _buildRadiusSlider(text, spacing),
                   SizedBox(height: spacing.xl),
                   _buildFoodChips(text, spacing),
-                  SizedBox(height: spacing.xl),
-                  _buildSurpriseToggle(text, spacing),
                 ],
               ),
             ),
@@ -195,6 +200,39 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               horizontal: 16,
               vertical: 14,
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenderPicker(TextTheme text, AppSpacing spacing) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'מגדר',
+          style: text.labelLarge?.copyWith(color: AppColors.textSecondary),
+        ),
+        SizedBox(height: spacing.sm),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceVariant,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: DropdownButton<Gender>(
+            value: _selectedGender,
+            hint: const Text('בחר מגדר'),
+            isExpanded: true,
+            underline: const SizedBox.shrink(),
+            borderRadius: BorderRadius.circular(14),
+            items: const [
+              DropdownMenuItem(value: Gender.male, child: Text('זכר')),
+              DropdownMenuItem(value: Gender.female, child: Text('נקבה')),
+              DropdownMenuItem(value: Gender.other, child: Text('אחר')),
+            ],
+            onChanged: (g) => setState(() => _selectedGender = g),
           ),
         ),
       ],
@@ -399,47 +437,6 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           }).toList(),
         ),
       ],
-    );
-  }
-
-  Widget _buildSurpriseToggle(TextTheme text, AppSpacing spacing) {
-    return Container(
-      padding: EdgeInsets.all(spacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'מצב הפתעה',
-                  style: text.labelLarge?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: spacing.xs),
-                Text(
-                  'תן לי לבחור בשבילכם ולהפתיע',
-                  style: text.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: _surpriseOptIn,
-            onChanged: (v) => setState(() => _surpriseOptIn = v),
-            activeThumbColor: AppColors.primaryDark,
-          ),
-        ],
-      ),
     );
   }
 

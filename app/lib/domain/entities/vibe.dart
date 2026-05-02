@@ -12,14 +12,14 @@ extension VibeInfo on Vibe {
     Vibe.loud: 'חיי לילה',
   }[this]!;
 
-  String get emoji => const {
-    Vibe.calm: '🧘',
-    Vibe.food: '🍽️',
-    Vibe.nature: '🌿',
-    Vibe.adventure: '🧗',
-    Vibe.funny: '😂',
-    Vibe.loud: '🎉',
-  }[this]!;
+  // String get emoji => const {
+  //   Vibe.calm: '🧘',
+  //   Vibe.food: '🍽️',
+  //   Vibe.nature: '🌿',
+  //   Vibe.adventure: '🧗',
+  //   Vibe.funny: '😂',
+  //   Vibe.loud: '🎉',
+  // }[this]!;
 
   Color get cardColor => const {
     Vibe.calm: Color(0xFFEDE5EC),
@@ -27,7 +27,25 @@ extension VibeInfo on Vibe {
     Vibe.nature: Color(0xFFD9EDD9),
     Vibe.adventure: Color(0xFFD3DCF0),
     Vibe.funny: Color(0xFFF5F0D0),
-    Vibe.loud: Color(0xFF2A1A3E),
+    Vibe.loud: Color.fromARGB(255, 207, 191, 226),
+  }[this]!;
+
+  String get imageAsset => const {
+    Vibe.calm: 'assets/images/vibes/vibe_calm.jpg',
+    Vibe.food: 'assets/images/vibes/vibe_food.jpg',
+    Vibe.nature: 'assets/images/vibes/vibe_nature.jpg',
+    Vibe.adventure: 'assets/images/vibes/vibe_adventure.jpg',
+    Vibe.funny: 'assets/images/vibes/vibe_funny.jpg',
+    Vibe.loud: 'assets/images/vibes/vibe_loud.jpg',
+  }[this]!;
+
+    String get imageAsset1 => const {
+    Vibe.calm: 'assets/images/vibes/vibe_calm.png',
+    Vibe.food: 'assets/images/vibes/vibe_food.png',
+    Vibe.nature: 'assets/images/vibes/vibe_nature.png',
+    Vibe.adventure: 'assets/images/vibes/vibe_adventure.png',
+    Vibe.funny: 'assets/images/vibes/vibe_funny.png',
+    Vibe.loud: 'assets/images/vibes/vibe_loud.png',
   }[this]!;
 }
 

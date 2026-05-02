@@ -15,6 +15,7 @@ class CreateProfileUseCase {
     required int maxRadius,
     required List<String> foodPreferences,
     required bool surpriseOptIn,
+    required int gender,
   }) {
     final userId = _authRepo.currentUserId;
     if (userId == null) throw StateError('no authenticated user');
@@ -27,6 +28,7 @@ class CreateProfileUseCase {
       maxRadius: maxRadius,
       foodPreferences: foodPreferences,
       surpriseOptIn: surpriseOptIn,
+      gender: gender,
     );
   }
 }

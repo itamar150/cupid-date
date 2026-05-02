@@ -1,7 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:cupid_date/core/theme/app_colors.dart';
 import 'package:cupid_date/core/theme/app_spacing.dart';
 import 'package:cupid_date/core/widgets/home_header.dart';
+import 'package:cupid_date/domain/entities/gender.dart';
 import 'package:cupid_date/domain/entities/vibe.dart';
+import 'package:cupid_date/presentation/auth/providers/auth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,16 +19,25 @@ class VibeSelectionScreen extends ConsumerStatefulWidget {
 }
 
 class _VibeSelectionScreenState extends ConsumerState<VibeSelectionScreen> {
+  static const int _loopMultiplier = 1000;
   late final PageController _pageCtrl;
   int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
-    _pageCtrl = PageController(viewportFraction: 0.78);
+    final initialPage = Vibe.values.length * (_loopMultiplier ~/ 2);
+    _currentPage = initialPage % Vibe.values.length;
+    _pageCtrl = PageController(
+      viewportFraction: 0.7,
+      initialPage: initialPage,
+    );
     _pageCtrl.addListener(() {
-      final page = _pageCtrl.page?.round() ?? 0;
-      if (page != _currentPage) setState(() => _currentPage = page);
+      final page =
+          (_pageCtrl.page?.round() ?? initialPage) % Vibe.values.length;
+      if (page != _currentPage) {
+        setState(() => _currentPage = page);
+      }
     });
   }
 
@@ -39,52 +52,139 @@ class _VibeSelectionScreenState extends ConsumerState<VibeSelectionScreen> {
     final spacing = Theme.of(context).extension<AppSpacing>()!;
     final text = Theme.of(context).textTheme;
     final bottomPad = MediaQuery.viewPaddingOf(context).bottom;
+    final size = MediaQuery.sizeOf(context);
+    final carouselHeight = math.min(size.height * 0.396, 387).toDouble();
+    final gender = Gender.fromValue(
+      ref.watch(currentUserGenderProvider).valueOrNull ?? 1,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
         children: [
-          const HomeHeader(),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              spacing.xxl,
-              spacing.lg,
-              spacing.xxl,
-              spacing.sm,
-            ),
-            child: Text(
-              'איזה סוג בילוי תרצה',
-              style: text.titleMedium?.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w700,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const HomeHeader(),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  spacing.xxl,
+                  spacing.lg,
+                  spacing.xxl,
+                  spacing.sm,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      "איזה סוג בילוי ${gender.text('תרצה', 'תרצי')}?",
+                      textAlign: TextAlign.center,
+                      style: text.titleLarge?.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: spacing.xs),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'נמצא את ה- Hang המתאים עבורך',
+                          style: text.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        SizedBox(width: spacing.xs),
+                        const Icon(
+                          Icons.auto_awesome,
+                          color: Color(0xFFD4A437),
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
+              SizedBox(height: spacing.xl),
+              SizedBox(
+                height: carouselHeight,
+                child: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: PageView.builder(
+                    controller: _pageCtrl,
+                    clipBehavior: Clip.none,
+                    itemCount: Vibe.values.length * _loopMultiplier,
+                    itemBuilder: (_, index) => AnimatedBuilder(
+                      animation: _pageCtrl,
+                      builder: (_, child) {
+                        final page =
+                            _pageCtrl.hasClients
+                                ? (_pageCtrl.page ??
+                                    _pageCtrl.initialPage.toDouble())
+                                : _pageCtrl.initialPage.toDouble();
+                        final delta = index - page;
+                        final clampedDelta = delta.clamp(-1.0, 1.0);
+                        final distance = delta.abs();
+                        final scale = (1 - distance * 0.14).clamp(0.84, 1.0);
+                        final dy = distance.clamp(0.0, 1.0) * 18;
+                        final dx = clampedDelta * 10;
+                        final rotateY = -clampedDelta * 0.42;
+                        final transform =
+                            Matrix4.identity()
+                              ..setEntry(3, 2, 0.0012)
+                              ..translateByDouble(dx, dy, 0, 1)
+                              ..rotateY(rotateY)
+                              ..scaleByDouble(scale, scale, 1, 1);
+
+                        return Transform(
+                          alignment:
+                              clampedDelta < 0
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft,
+                          transform: transform,
+                          child: child,
+                        );
+                      },
+                      child: _VibeCard(
+                        vibe: Vibe.values[index % Vibe.values.length],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: spacing.md),
+              _buildDots(spacing),
+              const Spacer(),
+              _buildSurpriseButton(spacing, text),
+              SizedBox(height: 90 + bottomPad),
+            ],
+          ),
+          Positioned(
+            left: -22,
+            bottom: -22,
+            child: _EdgeIconButton(
+              icon: Icons.tune_sharp,
+              alignment: const Alignment(0, -0.7),
+              backgroundColor: const Color.fromARGB(255, 220, 220, 248),
+              borderColor: const Color.fromARGB(255, 154, 169, 204),
+              onTap: () {
+                // TODO(dev): open search settings sheet
+              },
             ),
           ),
-          Expanded(
-            child: PageView.builder(
-              controller: _pageCtrl,
-              itemCount: Vibe.values.length,
-              itemBuilder: (_, index) => AnimatedBuilder(
-                animation: _pageCtrl,
-                builder: (_, child) {
-                  final page =
-                      _pageCtrl.hasClients ? (_pageCtrl.page ?? 0) : 0.0;
-                  final scale =
-                      (1 - (page - index).abs() * 0.15).clamp(0.85, 1.0);
-                  return Transform.scale(scale: scale, child: child);
-                },
-                child: _VibeCard(vibe: Vibe.values[index]),
-              ),
+          Positioned(
+            right: -22,
+            bottom: -22,
+            child: _EdgeIconButton(
+              icon: Icons.group_add_outlined,
+              alignment: const Alignment(0, -0.7),
+              backgroundColor: const Color.fromARGB(255, 247, 224, 235),
+              borderColor: const Color(0xFFE4AFC6),
+              onTap: () {
+                // TODO(dev): open add partner screen
+              },
             ),
           ),
-          SizedBox(height: spacing.md),
-          _buildDots(spacing),
-          SizedBox(height: spacing.lg),
-          _buildSurpriseButton(spacing, text),
-          SizedBox(height: spacing.md),
-          _buildBottomButtons(spacing),
-          SizedBox(height: spacing.lg + bottomPad),
         ],
       ),
     );
@@ -110,48 +210,37 @@ class _VibeSelectionScreenState extends ConsumerState<VibeSelectionScreen> {
   }
 
   Widget _buildSurpriseButton(AppSpacing spacing, TextTheme text) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: spacing.xxl),
+    return Center(
       child: SizedBox(
-        width: double.infinity,
-        height: 52,
-        child: FilledButton.icon(
+        width: 220,
+        height: 50,
+        child: FilledButton(
           onPressed: () {
-            // TODO(dev): surprise mode — system picks vibe + venue
+            // TODO(dev): surprise mode - system picks vibe + venue
           },
-          icon: const Icon(Icons.auto_awesome, size: 18),
-          label: Text(
-            'תפתיע אותנו!',
-            style: text.labelLarge?.copyWith(color: AppColors.onDark),
-          ),
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.primaryDark,
             shape: const StadiumBorder(),
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'תפתיעו אותנו! ',
+                style: text.labelLarge?.copyWith(
+                  color: AppColors.onDark,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(width: spacing.xs),
+              const Icon(Icons.auto_awesome, size: 16),
+            ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildBottomButtons(AppSpacing spacing) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: spacing.xl),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _BottomIconButton(
-            icon: Icons.tune_rounded,
-            onTap: () {
-              // TODO(dev): open search settings sheet
-            },
-          ),
-          _BottomIconButton(
-            icon: Icons.group_add_outlined,
-            onTap: () {
-              // TODO(dev): open add partner screen
-            },
-          ),
-        ],
       ),
     );
   }
@@ -164,60 +253,68 @@ class _VibeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // TODO(dev): navigate to venue results for this vibe
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-        decoration: BoxDecoration(
-          color: vibe.cardColor,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Container(color: vibe.cardColor),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: GestureDetector(
+        onTap: () {
+          // TODO(dev): navigate to venue results for this vibe
+        },
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
               ),
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.55),
-                      ],
-                      stops: const [0.45, 1],
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  left: -6,
+                  right: -6,
+                  child: Image.asset(
+                    vibe.imageAsset1,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        Container(color: vibe.cardColor),
+                  ),
+                ),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.55),
+                        ],
+                        stops: const [0.45, 1],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Positioned(
-                bottom: 28,
-                left: 0,
-                right: 0,
-                child: Text(
-                  vibe.label,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.heebo(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                Positioned(
+                  bottom: 18,
+                  left: 0,
+                  right: 0,
+                  child: Text(
+                    vibe.label,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.heebo(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -225,31 +322,48 @@ class _VibeCard extends StatelessWidget {
   }
 }
 
-class _BottomIconButton extends StatelessWidget {
-  const _BottomIconButton({required this.icon, required this.onTap});
+class _EdgeIconButton extends StatelessWidget {
+  const _EdgeIconButton({
+    required this.icon,
+    required this.alignment,
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.onTap,
+  });
 
   final IconData icon;
+  final Alignment alignment;
+  final Color backgroundColor;
+  final Color borderColor;
   final VoidCallback onTap;
+
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 52,
-        height: 52,
+        width: 92,
+        height: 92,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: backgroundColor,
           shape: BoxShape.circle,
+          border: Border.all(color: borderColor, width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 3),
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
-        child: Icon(icon, color: AppColors.textSecondary, size: 22),
+        child: Align(
+          alignment: alignment,
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Icon(icon, color: AppColors.primaryDark, size: 28),
+          ),
+        ),
       ),
     );
   }

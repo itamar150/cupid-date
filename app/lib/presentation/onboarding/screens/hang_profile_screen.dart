@@ -1,6 +1,7 @@
 import 'package:cupid_date/core/theme/app_colors.dart';
 import 'package:cupid_date/core/theme/app_spacing.dart';
 import 'package:cupid_date/core/widgets/onboarding_header.dart';
+import 'package:cupid_date/presentation/auth/providers/auth_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -35,14 +36,30 @@ class _VibeProfileScreenState extends ConsumerState<VibeProfileScreen> {
 
   Future<void> _submit() async {
     setState(() => _isLoading = true);
+    var saved = false;
     try {
       final userId = Supabase.instance.client.auth.currentUser!.id;
-      await Supabase.instance.client
+      final client = Supabase.instance.client;
+      final existing = await client
           .from('preferences')
-          .update({'vibe_profile': _selected.toList()})
-          .eq('user_id', userId);
-
-    } on Exception catch (_) {
+          .select('user_id')
+          .eq('user_id', userId)
+          .maybeSingle();
+      if (existing == null) {
+        await client.from('preferences').insert(
+          {'user_id': userId, 'vibe_profile': _selected.toList()},
+        );
+      } else {
+        await client
+            .from('preferences')
+            .update({'vibe_profile': _selected.toList()})
+            .eq('user_id', userId);
+      }
+      saved = true;
+    } on Exception catch (e) {
+      // Temporary debug — remove before release.
+      // ignore: avoid_print
+      print('vibe upsert error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('שגיאה בשמירה. נסה שוב.')),
@@ -50,6 +67,12 @@ class _VibeProfileScreenState extends ConsumerState<VibeProfileScreen> {
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+    if (saved && mounted) {
+      ref
+        ..invalidate(vibeProfileCompleteProvider)
+        ..invalidate(profileExistsProvider);
+      Navigator.of(context).popUntil((route) => route.isFirst);
     }
   }
 

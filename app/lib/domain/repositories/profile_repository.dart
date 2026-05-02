@@ -9,5 +9,6 @@ abstract interface class ProfileRepository {
     required int maxRadius,
     required List<String> foodPreferences,
     required bool surpriseOptIn,
+    required int gender,
   });
 }
